@@ -1,14 +1,32 @@
-contract  worldcup
+pragma solidity ^0.4.0;
+contract owned {
+    address public owner;
+
+    function owned() public {
+        owner = msg.sender;
+    }
+
+    modifier onlyOwner {
+        require(msg.sender == owner);
+        _;
+    }
+
+    function transferOwnership(address newOwner) onlyOwner public {
+        owner = newOwner;
+    }
+}
+
+contract  worldcup2018 is owned
 {
     //to keep coding simple, leave 0 index as unused;
-    //mapping(address => uint256)[33]  public userBetAmountForTeam;
     mapping(address => uint256)[33]  public userBetMultipliedAmountForTeam;
     uint256 public totalAmountForBets;
 	uint256[33]  public  totalBetMultipliedAmountForTeam;
-    bool isBetClosed = false;
-    uint  championTeamId = 0;
-    uint  multiplier = 32;  // it actually meanns:how many teams are posssible champion.
-    function betFinalChampionForTeam(uint teamId) payable public
+    bool public  isBetClosed = false;
+    uint  public championTeamId = 0;
+    uint  public multiplier = 32;  // it actually meanns:how many teams are posssible champion.
+    uint  public worldcupYear = 2018;
+    function betChampionTeam(uint teamId) payable public
     {
         //valid teamId should be 1~32
         require(teamId > 0);
@@ -20,17 +38,23 @@ contract  worldcup
         totalBetMultipliedAmountForTeam[teamId] += (msg.value * multiplier);
         
     }
-    function setBetClosed() public
+    function setMultiplier (uint newMultiplier) onlyOwner
+    {
+        require(newMultiplier > 1);
+        require(newMultiplier < multiplier);
+        multiplier = newMultiplier;
+    }
+    function setBetClosed() public onlyOwner
     {
         isBetClosed = true;
     }
-    function setChampionTeam(uint teamId)
+    function setChampionTeam(uint teamId) onlyOwner
     {
         require(teamId > 0);
         require(teamId < 33);
         championTeamId = teamId;
     }
-    function claimWin() public
+    function claimWin() public  
     {
         require(championTeamId > 0);
         uint multipliedAmount = userBetMultipliedAmountForTeam[championTeamId][msg.sender];
@@ -45,5 +69,5 @@ contract  worldcup
         }
         
     }
-    
+
 }
